@@ -23,7 +23,7 @@ def product_list(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET'])
+@api_view(['GET', 'PUT', 'DELETE'])
 def product(request, pk):
     """商品詳細APIビューの雛形"""
     try:
@@ -31,8 +31,17 @@ def product(request, pk):
     except Product.DoesNotExist:
         return Response({'error': '商品が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
-    serializer = ProductSerializer(product)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    if request.method == 'GET':
+        serializer = ProductSerializer(product)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    if request.method == 'PUT':
+        serializer = ProductSerializer(product, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'POST'])
 def order_list(request):
